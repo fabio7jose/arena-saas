@@ -1,0 +1,174 @@
+/* Layout */
+
+.page {
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc;
+}
+
+/* Header */
+
+.navLink {
+  margin-left: auto;
+  font-size: 13px;
+  color: #3b82f6;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  text-decoration: underline;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.studentBadge {
+  font-size: 12px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 500;
+}
+
+/* Main */
+
+.main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.empty {
+  color: #94a3b8;
+  text-align: center;
+  padding: 48px 0;
+  font-size: 15px;
+}
+
+/* Day section */
+
+.daySection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dayHeading {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 4px;
+}
+
+/* Session list */
+
+.sessionList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Session card */
+
+.sessionCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.cardInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.cardTime {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.cardName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.cardCourt {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Status badges */
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badgeReserved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badgePrecheckin {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.badgeCheckin {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badgeAttended {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.badgeNoshow {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.badgeCancelled {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
