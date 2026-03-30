@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import DevNav from '@/components/DevNav/DevNav';
 
 export const metadata: Metadata = {
   title: 'Arena SaaS',
@@ -9,7 +10,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        {children}
+        <DevNav />
+      </body>
     </html>
   );
 }

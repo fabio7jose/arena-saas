@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './styles.module.css';
 import {
   type Booking,
@@ -59,12 +59,16 @@ export default function TeacherAttendancePage() {
 
   const session = getSessionById(sessionId);
 
-  // Local copy of bookings so actions trigger re-render
-  const [bookings, setBookings] = useState<Booking[]>(() =>
-    getBookingsForSession(sessionId),
-  );
+  const [bookings, setBookings] = useState<Booking[]>([]);
 
-  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    function refresh() {
+      setBookings(getBookingsForSession(sessionId));
+    }
+    refresh();
+    const id = setInterval(refresh, 1000);
+    return () => clearInterval(id);
+  }, [sessionId]);
 
   if (!session) {
     return (
@@ -96,19 +100,11 @@ export default function TeacherAttendancePage() {
   function handleMarkAttended(bookingId: string) {
     markAttended(bookingId);
     setBookings(getBookingsForSession(sessionId));
-    setSaved(false);
   }
 
   function handleMarkNoShow(bookingId: string) {
     markNoShow(bookingId);
     setBookings(getBookingsForSession(sessionId));
-    setSaved(false);
-  }
-
-  function handleSave() {
-    // In-memory: mutations already happened. Just confirm to the teacher.
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
   }
 
   // ── Render ──
@@ -117,16 +113,10 @@ export default function TeacherAttendancePage() {
     <div className={styles.page}>
       {/* Header */}
       <header className={styles.header}>
-        <Link href={`/${tenant}/admin/schedule`} className={styles.backLink}>
-          ← Grade Admin
+        <Link href={`/${tenant}/teacher/today`} className={styles.backLink}>
+          ← Meu dia
         </Link>
         <h1 className={styles.title}>Chamada</h1>
-        <Link href={`/${tenant}/admin/sessions/${sessionId}`} className={styles.backLink}>
-          Sessão Admin →
-        </Link>
-        <Link href={`/${tenant}/student/my-schedule`} className={styles.backLink}>
-          Agenda do Aluno →
-        </Link>
         <span className={styles.tenant}>{tenant}</span>
       </header>
 
@@ -147,7 +137,7 @@ export default function TeacherAttendancePage() {
           </div>
           <div className={styles.infoRow}>
             <span className={styles.infoLabel}>Data / Hora</span>
-            <span className={styles.infoValue}>{formatDateTime(session.startsAt)}</span>
+            <span className={styles.infoValue} suppressHydrationWarning={true}>{formatDateTime(session.startsAt)}</span>
           </div>
         </section>
 
@@ -174,7 +164,12 @@ export default function TeacherAttendancePage() {
               <tbody>
                 {attendanceList.map(b => (
                   <tr key={b.id} className={styles.tr}>
-                    <td className={styles.td}>{b.studentName}</td>
+                    <td className={styles.td}>
+                      {b.studentName}
+                      {b.accessChannel === 'TRIAL' && (
+                        <span className={styles.trialBadge}>Experimental</span>
+                      )}
+                    </td>
                     <td className={styles.td}>
                       <span className={`${styles.badge} ${STATUS_CLASS[b.status]}`}>
                         {STATUS_LABEL[b.status]}
@@ -219,19 +214,16 @@ export default function TeacherAttendancePage() {
           )}
         </section>
 
-        {/* Save bar */}
+        {/* Attendance status indicator */}
         {attendanceList.length > 0 && (
-          <div className={styles.saveBar}>
-            {allResolved && (
-              <span className={styles.allDone}>Todos os alunos registrados</span>
+          <div className={styles.statusBar}>
+            {allResolved ? (
+              <span className={styles.allDone}>✓ Chamada completa</span>
+            ) : (
+              <span className={styles.progressText}>
+                {resolvedCount} de {attendanceList.length} alunos registrados
+              </span>
             )}
-            <button
-              className={`${styles.btnSave} ${saved ? styles.btnSaved : ''}`}
-              onClick={handleSave}
-              disabled={saved}
-            >
-              {saved ? '✓ Chamada salva' : 'Salvar chamada'}
-            </button>
           </div>
         )}
       </div>

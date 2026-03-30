@@ -56,11 +56,17 @@ export default function StudentSchedulePage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [weekStart, setWeekStart] = useState<Date | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [feedback, setFeedback] = useState<{ message: string; ok: boolean } | null>(null);
 
   useEffect(() => {
     setWeekStart(getWeekStart());
     setSessions(getSessionsStore());
     setBookings([...MOCK_BOOKINGS]);
+    const id = setInterval(() => {
+      setSessions(getSessionsStore());
+      setBookings([...MOCK_BOOKINGS]);
+    }, 1000);
+    return () => clearInterval(id);
   }, []);
 
   if (!weekStart) return <div className={styles.loading}>Carregando...</div>;
@@ -85,10 +91,21 @@ export default function StudentSchedulePage() {
 
   // ── Booking ──
 
-  function handleBook(sessionId: string, channel: 'MEMBERSHIP' | 'BENEFIT') {
+  function showFeedback(message: string, ok: boolean) {
+    setFeedback({ message, ok });
+    setTimeout(() => setFeedback(null), 3000);
+  }
+
+  function handleBook(sessionId: string, channel: 'MEMBERSHIP' | 'BENEFIT' | 'DROP_IN') {
     const result = studentBook(sessionId, MOCK_STUDENT_ID, MOCK_STUDENT, channel);
-    if ('error' in result) return; // already handled by UI guards
+    if ('error' in result) {
+      if (result.error === 'duplicate') showFeedback('Você já tem uma reserva nesta sessão.', false);
+      else if (result.error === 'full') showFeedback('Sessão lotada.', false);
+      else showFeedback('Não foi possível realizar a reserva.', false);
+      return;
+    }
     setBookings([...MOCK_BOOKINGS]);
+    showFeedback('Reserva realizada com sucesso!', true);
   }
 
   // ── Derived per-session helpers ──
@@ -143,6 +160,17 @@ export default function StudentSchedulePage() {
         </div>
       </header>
 
+      {feedback && (
+        <div style={{
+          position: 'fixed', top: '1rem', right: '1rem', zIndex: 999,
+          padding: '0.75rem 1.25rem', borderRadius: '0.5rem',
+          background: feedback.ok ? '#166534' : '#7f1d1d',
+          color: '#fff', fontWeight: 500, boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+        }}>
+          {feedback.message}
+        </div>
+      )}
+
       <main className={styles.main}>
         {sessionsByDay.length === 0 && (
           <p className={styles.empty}>Nenhuma aula nesta semana.</p>
@@ -194,6 +222,12 @@ export default function StudentSchedulePage() {
                             onClick={() => handleBook(session.id, 'BENEFIT')}
                           >
                             Benefício
+                          </button>
+                          <button
+                            className={styles.btnBook}
+                            onClick={() => handleBook(session.id, 'DROP_IN')}
+                          >
+                            Avulso
                           </button>
                         </div>
                       )}

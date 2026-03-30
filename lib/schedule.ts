@@ -2,7 +2,8 @@
 
 export type Court    = { id: string; name: string };
 export type Teacher  = { id: string; name: string };
-export type Template = { id: string; name: string; capacity: number; durationMinutes: number };
+export type ServiceType = 'OPEN_GROUP' | 'PERSONAL' | 'VIP';
+export type Template = { id: string; name: string; capacity: number; durationMinutes: number; service_type: ServiceType };
 
 export type Session = {
   id: string;
@@ -11,7 +12,7 @@ export type Session = {
   teacherId: string;
   startsAt: string; // ISO 8601
   durationMinutes: number;
-  bookings: number; // mocked count (kept for S03 grid display)
+  bookings: number; // seed value only — S03 uses activeBookingCount() for live display
 };
 
 export type BookingStatus =
@@ -35,17 +36,8 @@ export type Booking = {
 
 // ─── Reference data (mock) ────────────────────────────────────────────────────
 
-export const COURTS: Court[] = [
-  { id: 'q1', name: 'Quadra 1' },
-  { id: 'q2', name: 'Quadra 2' },
-];
-
 export const TEACHERS: Teacher[] = [
   { id: 't1', name: 'Professor João' },
-];
-
-export const TEMPLATES: Template[] = [
-  { id: 'tpl1', name: 'Treino Aberto', capacity: 8, durationMinutes: 60 },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -66,14 +58,44 @@ function makeAt(weekStart: Date, dayOffset: number, hour: number): string {
   return d.toISOString();
 }
 
-// ─── Sessions store ───────────────────────────────────────────────────────────
 // globalThis ensures a single instance even across code-split chunks.
 
 type ArenaGlobal = {
   __arenaSessions?: Session[];
   __arenaBookings?: Booking[];
+  __arenaCourts?: Court[];
+  __arenaTemplates?: Template[];
 };
 const _g = globalThis as unknown as ArenaGlobal;
+
+// ─── Courts store ─────────────────────────────────────────────────────────────
+
+/** Returns the shared in-memory courts array. Initialised lazily on first call. */
+export function getCourtsStore(): Court[] {
+  if (!_g.__arenaCourts) _g.__arenaCourts = [
+    { id: 'q1', name: 'Quadra 1' },
+    { id: 'q2', name: 'Quadra 2' },
+  ];
+  return _g.__arenaCourts;
+}
+
+/** Shared courts array — backed by globalThis so mutations are visible across all chunks. */
+export const COURTS: Court[] = getCourtsStore();
+
+// ─── Templates store ──────────────────────────────────────────────────────────
+
+/** Returns the shared in-memory templates array. Initialised lazily on first call. */
+export function getTemplatesStore(): Template[] {
+  if (!_g.__arenaTemplates) _g.__arenaTemplates = [
+    { id: 'tpl1', name: 'Treino Aberto', capacity: 8, durationMinutes: 60, service_type: 'OPEN_GROUP' },
+  ];
+  return _g.__arenaTemplates;
+}
+
+/** Shared templates array — backed by globalThis so mutations are visible across all chunks. */
+export const TEMPLATES: Template[] = getTemplatesStore();
+
+// ─── Sessions store ───────────────────────────────────────────────────────────
 
 function buildInitialSessions(): Session[] {
   const ws = getWeekStart();
@@ -83,6 +105,7 @@ function buildInitialSessions(): Session[] {
     { id: 's3', templateId: 'tpl1', courtId: 'q1', teacherId: 't1', startsAt: makeAt(ws, 2, 10), durationMinutes: 60, bookings: 7 }, // Wed 10:00 Q1
     { id: 's4', templateId: 'tpl1', courtId: 'q2', teacherId: 't1', startsAt: makeAt(ws, 3, 8),  durationMinutes: 60, bookings: 2 }, // Thu 08:00 Q2
     { id: 's5', templateId: 'tpl1', courtId: 'q1', teacherId: 't1', startsAt: makeAt(ws, 4, 17), durationMinutes: 60, bookings: 6 }, // Fri 17:00 Q1
+    { id: 's6', templateId: 'tpl1', courtId: 'q1', teacherId: 't1', startsAt: makeAt(ws, 6, 10), durationMinutes: 60, bookings: 0 }, // Sun 10:00 Q1 (S08 test)
   ];
 }
 
@@ -203,6 +226,12 @@ export function markNoShow(bookingId: string): void {
   if (b && (b.status === 'CHECKIN_CONFIRMED' || b.status === 'RESERVED' || b.status === 'PRE_CHECKIN_PENDING')) b.status = 'NO_SHOW';
 }
 
+/** Cancels a RESERVED or PRE_CHECKIN_PENDING booking. Mutates in place. */
+export function cancelBooking(bookingId: string): void {
+  const b = MOCK_BOOKINGS.find(b => b.id === bookingId);
+  if (b && (b.status === 'RESERVED' || b.status === 'PRE_CHECKIN_PENDING')) b.status = 'CANCELLED';
+}
+
 /** Marks a CHECKIN_CONFIRMED booking as ATTENDED. Mutates in place. */
 export function markAttended(bookingId: string): void {
   const b = MOCK_BOOKINGS.find(b => b.id === bookingId);
@@ -219,7 +248,7 @@ export function studentBook(
   sessionId: string,
   studentId: string,
   studentName: string,
-  channel: 'MEMBERSHIP' | 'BENEFIT' = 'MEMBERSHIP',
+  channel: 'MEMBERSHIP' | 'BENEFIT' | 'DROP_IN' = 'MEMBERSHIP',
 ): { booking: Booking } | { error: string } {
   const session = getSessionById(sessionId);
   if (!session) return { error: 'Sessão não encontrada.' };

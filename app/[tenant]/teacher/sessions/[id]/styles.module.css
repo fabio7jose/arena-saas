@@ -244,38 +244,38 @@
   color: #94a3b8;
 }
 
-/* Save bar */
+/* Status bar */
 
-.saveBar {
+.statusBar {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 16px;
-  padding: 16px 0 4px;
+  padding: 12px 0 4px;
 }
 
 .allDone {
   font-size: 13px;
   color: #16a34a;
-  font-weight: 500;
-}
-
-.btnSave {
-  background: #0f172a;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 9px 20px;
-  font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
 }
 
-.btnSave:hover:not(:disabled) {
-  background: #1e293b;
+.progressText {
+  font-size: 13px;
+  color: #64748b;
 }
 
-.btnSaved {
-  background: #16a34a;
-  cursor: default;
+/* Trial badge */
+
+.trialBadge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+  vertical-align: middle;
+  white-space: nowrap;
 }

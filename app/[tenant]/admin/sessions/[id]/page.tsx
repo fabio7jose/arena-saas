@@ -2,18 +2,21 @@
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './styles.module.css';
 import {
   type Booking,
   type BookingStatus,
+  type AccessChannel,
   COURTS,
   TEACHERS,
   TEMPLATES,
+  MOCK_BOOKINGS,
   getSessionById,
   getBookingsForSession,
   confirmCheckin,
   markNoShow,
+  cancelBooking,
 } from '../../../../../lib/schedule';
 
 // ─── Status badge config ──────────────────────────────────────────────────────
@@ -43,6 +46,13 @@ const CHANNEL_LABEL: Record<string, string> = {
   TRIAL:      'Experimental',
 };
 
+const CONFIRM_LABEL: Record<string, string> = {
+  MEMBERSHIP: 'Confirmar presença',
+  BENEFIT:    'Confirmar check-in',
+  DROP_IN:    'Confirmar pagamento',
+  TRIAL:      'Confirmar presença',
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDateTime(iso: string): string {
@@ -70,6 +80,21 @@ export default function SessionDetailPage() {
   const [bookings, setBookings] = useState<Booking[]>(() =>
     getBookingsForSession(sessionId),
   );
+
+  // Add-student form state
+  const [showForm, setShowForm]       = useState(false);
+  const [formName, setFormName]       = useState('');
+  const [formChannel, setFormChannel] = useState<AccessChannel>('MEMBERSHIP');
+  const [formError, setFormError]     = useState('');
+
+  // Remove confirmation dialog state
+  const [removeConfirm, setRemoveConfirm] = useState<{ id: string; name: string } | null>(null);
+
+  // Poll shared store so changes from other screens reflect here
+  useEffect(() => {
+    const id = setInterval(() => setBookings(getBookingsForSession(sessionId)), 1000);
+    return () => clearInterval(id);
+  }, [sessionId]);
 
   if (!session) {
     return (
@@ -106,6 +131,46 @@ export default function SessionDetailPage() {
     setBookings(getBookingsForSession(sessionId));
   }
 
+  function handleRemove(bookingId: string) {
+    cancelBooking(bookingId);
+    setBookings(getBookingsForSession(sessionId));
+  }
+
+  function handleAddStudent(e: React.FormEvent) {
+    e.preventDefault();
+    const name = formName.trim();
+    if (!name) return;
+
+    const active = bookings.filter(b => b.status !== 'CANCELLED');
+    if (active.length >= capacity) {
+      setFormError('Sessão lotada.');
+      return;
+    }
+
+    const now = Date.now();
+    const booking: Booking = {
+      id:            `manual-${now}`,
+      sessionId,
+      studentId:     `manual-${now}`,
+      studentName:   name,
+      accessChannel: formChannel,
+      status:        formChannel === 'BENEFIT' ? 'PRE_CHECKIN_PENDING' : 'RESERVED',
+    };
+    MOCK_BOOKINGS.push(booking);
+    setBookings(getBookingsForSession(sessionId));
+    setShowForm(false);
+    setFormName('');
+    setFormChannel('MEMBERSHIP');
+    setFormError('');
+  }
+
+  function handleCancelForm() {
+    setShowForm(false);
+    setFormName('');
+    setFormChannel('MEMBERSHIP');
+    setFormError('');
+  }
+
   // ── Render ──
 
   return (
@@ -116,12 +181,6 @@ export default function SessionDetailPage() {
           ← Grade Semanal
         </Link>
         <h1 className={styles.title}>Detalhe da Sessão</h1>
-        <Link href={`/${tenant}/teacher/sessions/${sessionId}`} className={styles.backLink}>
-          Chamada do Professor →
-        </Link>
-        <Link href={`/${tenant}/student/my-schedule`} className={styles.backLink}>
-          Agenda do Aluno →
-        </Link>
         <span className={styles.tenant}>{tenant}</span>
       </header>
 
@@ -142,7 +201,7 @@ export default function SessionDetailPage() {
           </div>
           <div className={styles.infoRow}>
             <span className={styles.infoLabel}>Data / Hora</span>
-            <span className={styles.infoValue}>{formatDateTime(session.startsAt)}</span>
+            <span className={styles.infoValue} suppressHydrationWarning={true}>{formatDateTime(session.startsAt)}</span>
           </div>
           <div className={styles.infoRow}>
             <span className={styles.infoLabel}>Duração</span>
@@ -169,14 +228,50 @@ export default function SessionDetailPage() {
 
         {/* Booking list */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>
-            Reservas ({activeBookings.length})
-            <span className={styles.sectionSub}>
-              {confirmedCount} confirmados
-            </span>
-          </h2>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>
+              Reservas ({activeBookings.length})
+              <span className={styles.sectionSub}>
+                {confirmedCount} confirmados
+              </span>
+            </h2>
+            {!showForm && (
+              <button className={styles.btnAdd} onClick={() => setShowForm(true)}>
+                + Adicionar aluno
+              </button>
+            )}
+          </div>
 
-          {bookings.length === 0 ? (
+          {showForm && (
+            <form className={styles.addForm} onSubmit={handleAddStudent}>
+              <div className={styles.addFormRow}>
+                <input
+                  className={styles.addInput}
+                  type="text"
+                  placeholder="Nome do aluno"
+                  value={formName}
+                  onChange={e => { setFormName(e.target.value); setFormError(''); }}
+                  required
+                  autoFocus
+                />
+                <select
+                  className={styles.addSelect}
+                  value={formChannel}
+                  onChange={e => setFormChannel(e.target.value as AccessChannel)}
+                >
+                  <option value="MEMBERSHIP">Mensalista</option>
+                  <option value="DROP_IN">Avulso</option>
+                  <option value="BENEFIT">Benefício</option>
+                  <option value="TRIAL">Experimental</option>
+                </select>
+                <button type="submit" className={styles.btnConfirm}>Adicionar</button>
+                <button type="button" className={styles.btnCancel} onClick={handleCancelForm}>Cancelar</button>
+              </div>
+              {formError && <p className={styles.addError}>{formError}</p>}
+            </form>
+          )}
+
+          {activeBookings.length === 0 ? (
             <p className={styles.empty}>Nenhuma reserva para esta sessão.</p>
           ) : (
             <table className={styles.table}>
@@ -189,7 +284,7 @@ export default function SessionDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {bookings.map(b => (
+                {activeBookings.map(b => (
                   <tr key={b.id} className={styles.tr}>
                     <td className={styles.td}>{b.studentName}</td>
                     <td className={styles.td}>
@@ -203,30 +298,41 @@ export default function SessionDetailPage() {
                       </span>
                     </td>
                     <td className={styles.td}>
-                      {(b.status === 'RESERVED' || b.status === 'PRE_CHECKIN_PENDING') && (
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button
-                            className={styles.btnConfirm}
-                            onClick={() => handleConfirmCheckin(b.id)}
-                          >
-                            Confirmar check-in
-                          </button>
+                      <div className={styles.actionRow}>
+                        {(b.status === 'RESERVED' || b.status === 'PRE_CHECKIN_PENDING') && (
+                          <>
+                            <button
+                              className={styles.btnConfirm}
+                              onClick={() => handleConfirmCheckin(b.id)}
+                            >
+                              {CONFIRM_LABEL[b.accessChannel] ?? 'Confirmar presença'}
+                            </button>
+                            <button
+                              className={styles.btnNoShow}
+                              onClick={() => handleMarkNoShow(b.id)}
+                            >
+                              Marcar falta
+                            </button>
+                          </>
+                        )}
+                        {b.status === 'CHECKIN_CONFIRMED' && (
                           <button
                             className={styles.btnNoShow}
                             onClick={() => handleMarkNoShow(b.id)}
                           >
                             Marcar falta
                           </button>
-                        </div>
-                      )}
-                      {b.status === 'CHECKIN_CONFIRMED' && (
-                        <button
-                          className={styles.btnNoShow}
-                          onClick={() => handleMarkNoShow(b.id)}
-                        >
-                          Marcar falta
-                        </button>
-                      )}
+                        )}
+                        {b.status !== 'ATTENDED' && b.status !== 'NO_SHOW' && (
+                          <button
+                            className={styles.btnRemoveIcon}
+                            onClick={() => setRemoveConfirm({ id: b.id, name: b.studentName })}
+                            title="Remover aluno"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -244,6 +350,31 @@ export default function SessionDetailPage() {
           <p className={styles.empty}>Nenhum aluno na fila de espera.</p>
         </section>
       </div>
+
+      {/* Remove confirmation modal */}
+      {removeConfirm && (
+        <div className={styles.modalOverlay} onClick={() => setRemoveConfirm(null)}>
+          <div className={styles.modalBox} onClick={e => e.stopPropagation()}>
+            <p className={styles.modalText}>
+              Tem certeza que deseja remover <strong>{removeConfirm.name}</strong> desta sessão?
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                className={styles.btnConfirm}
+                onClick={() => { handleRemove(removeConfirm.id); setRemoveConfirm(null); }}
+              >
+                Confirmar
+              </button>
+              <button
+                className={styles.btnCancel}
+                onClick={() => setRemoveConfirm(null)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

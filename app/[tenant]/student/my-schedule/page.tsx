@@ -14,13 +14,14 @@ import {
   MOCK_STUDENT_ID,
   MOCK_STUDENT_NAME,
   getSessionsStore,
+  cancelBooking,
 } from '../../../../lib/schedule';
 
 const DAY_NAMES = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
   RESERVED:            'Reservado',
-  PRE_CHECKIN_PENDING: 'Reservado aguardando Check-in',
+  PRE_CHECKIN_PENDING: 'Aguardando Check-in',
   CHECKIN_CONFIRMED:   'Confirmado',
   ATTENDED:            'Presente',
   NO_SHOW:             'Falta',
@@ -65,15 +66,32 @@ type Row = {
   session: Session;
 };
 
-function buildRows(): Row[] {
+const UPCOMING_STATUSES: BookingStatus[] = ['RESERVED', 'PRE_CHECKIN_PENDING', 'CHECKIN_CONFIRMED'];
+
+function buildRows(tab: 'upcoming' | 'past'): Row[] {
   const sessions = getSessionsStore();
+  const now = new Date();
+
   return MOCK_BOOKINGS
-    .filter(b => b.studentId === MOCK_STUDENT_ID && b.status !== 'CANCELLED')
+    .filter(b => {
+      if (b.studentId !== MOCK_STUDENT_ID) return false;
+      if (b.status === 'CANCELLED') return false;
+      const session = sessions.find(s => s.id === b.sessionId);
+      if (!session) return false;
+      const isPast = new Date(session.startsAt) < now;
+      if (tab === 'upcoming') {
+        return !isPast && UPCOMING_STATUSES.includes(b.status);
+      }
+      return isPast;
+    })
     .flatMap(b => {
       const session = sessions.find(s => s.id === b.sessionId);
       return session ? [{ booking: b, session }] : [];
     })
-    .sort((a, b) => new Date(a.session.startsAt).getTime() - new Date(b.session.startsAt).getTime());
+    .sort((a, b) => {
+      const diff = new Date(a.session.startsAt).getTime() - new Date(b.session.startsAt).getTime();
+      return tab === 'past' ? -diff : diff;
+    });
 }
 
 type DayGroup = {
@@ -99,20 +117,30 @@ function groupByDay(rows: Row[]): DayGroup[] {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+type Tab = 'upcoming' | 'past';
+
 export default function MySchedulePage() {
   const params = useParams();
   const tenant = params.tenant as string;
+  const [tab, setTab] = useState<Tab>('upcoming');
   const [groups, setGroups] = useState<DayGroup[]>([]);
 
-  // Poll shared store so changes from S10 / S09 reflect here
+  function refresh(activeTab: Tab = tab) {
+    setGroups(groupByDay(buildRows(activeTab)));
+  }
+
   useEffect(() => {
-    function refresh() {
-      setGroups(groupByDay(buildRows()));
-    }
-    refresh();
-    const id = setInterval(refresh, 1000);
+    refresh(tab);
+    const id = setInterval(() => refresh(tab), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [tab]);
+
+  function switchTab(next: Tab) {
+    setTab(next);
+    setGroups(groupByDay(buildRows(next)));
+  }
+
+  const emptyMsg = tab === 'upcoming' ? 'Nenhuma reserva futura.' : 'Nenhum histórico ainda.';
 
   return (
     <div className={styles.page}>
@@ -122,14 +150,26 @@ export default function MySchedulePage() {
         <Link href={`/${tenant}/student/schedule`} className={styles.navLink}>
           ← Aulas
         </Link>
-        <Link href={`/${tenant}/admin/schedule`} className={styles.navLink}>
-          Agenda Admin
-        </Link>
       </header>
+
+      <div className={styles.tabBar}>
+        <button
+          className={`${styles.tabBtn} ${tab === 'upcoming' ? styles.tabBtnActive : ''}`}
+          onClick={() => switchTab('upcoming')}
+        >
+          Próximas
+        </button>
+        <button
+          className={`${styles.tabBtn} ${tab === 'past' ? styles.tabBtnActive : ''}`}
+          onClick={() => switchTab('past')}
+        >
+          Histórico
+        </button>
+      </div>
 
       <main className={styles.main}>
         {groups.length === 0 && (
-          <p className={styles.empty}>Nenhuma reserva ativa.</p>
+          <p className={styles.empty}>{emptyMsg}</p>
         )}
 
         {groups.map(({ key, label, rows }) => (
@@ -148,9 +188,25 @@ export default function MySchedulePage() {
                       <span className={styles.cardName}>{template?.name}</span>
                       <span className={styles.cardCourt}>{court?.name}</span>
                     </div>
-                    <span className={`${styles.badge} ${STATUS_STYLE[booking.status]}`}>
-                      {STATUS_LABEL[booking.status]}
-                    </span>
+                    <div className={styles.badgeGroup}>
+                      <span className={`${styles.badge} ${STATUS_STYLE[booking.status]}`}>
+                        {STATUS_LABEL[booking.status]}
+                      </span>
+                      {booking.status === 'PRE_CHECKIN_PENDING' && (
+                        <span className={styles.preCheckinHint}>
+                          Aguardando confirmação do check-in
+                        </span>
+                      )}
+                    </div>
+                    {tab === 'upcoming' &&
+                      (booking.status === 'RESERVED' || booking.status === 'PRE_CHECKIN_PENDING') && (
+                        <button
+                          className={styles.cancelBtn}
+                          onClick={() => { cancelBooking(booking.id); refresh(); }}
+                        >
+                          Cancelar reserva
+                        </button>
+                    )}
                   </div>
                 );
               })}

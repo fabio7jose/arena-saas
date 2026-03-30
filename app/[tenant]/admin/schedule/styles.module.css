@@ -214,6 +214,37 @@
   margin-top: 2px;
 }
 
+.sessionCardFull {
+  background: #64748b;
+  border: 1.5px solid #ef4444;
+}
+
+.sessionCardFull:hover {
+  background: #475569;
+}
+
+.sessionCardFull .cardCourt {
+  color: #cbd5e1;
+}
+
+.sessionCardFull .cardBookings {
+  color: #e2e8f0;
+}
+
+.lotadoBadge {
+  display: inline-block;
+  margin-left: 5px;
+  background: #ef4444;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 /* Modal */
 
 .overlay {

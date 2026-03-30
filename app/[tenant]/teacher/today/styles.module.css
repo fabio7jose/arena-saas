@@ -1,0 +1,185 @@
+/* Layout */
+
+.page {
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  flex: 1;
+}
+
+.tenant {
+  font-size: 12px;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.backLink {
+  font-size: 13px;
+  color: #3b82f6;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+/* Date navigation */
+
+.navRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.navBtn {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.navBtn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.dateLabel {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  min-width: 9rem;
+  text-align: center;
+}
+
+.content {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Empty state */
+
+.empty {
+  font-size: 14px;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 60px;
+}
+
+/* Session list */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Session card */
+
+.card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.time {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  min-width: 56px;
+}
+
+.templateName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+  flex: 1;
+}
+
+.court {
+  font-size: 12px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.cardBottom {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 6px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.stat {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.statConfirmed {
+  font-size: 13px;
+  font-weight: 600;
+  color: #16a34a;
+  flex: 1;
+}
+
+.callLink {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3b82f6;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.callLink:hover {
+  text-decoration: underline;
+}

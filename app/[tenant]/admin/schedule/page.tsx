@@ -9,6 +9,7 @@ import {
   COURTS,
   TEACHERS,
   TEMPLATES,
+  activeBookingCount,
   createInitialSessions,
   createSession,
   getSessionsStore,
@@ -97,6 +98,12 @@ export default function SchedulePage() {
     setSessions(createInitialSessions());
   }, []);
 
+  // Poll for live booking count updates every 1s
+  useEffect(() => {
+    const id = setInterval(() => setSessions([...getSessionsStore()]), 1000);
+    return () => clearInterval(id);
+  }, []);
+
   if (!weekStart) {
     return <div className={styles.loading}>Carregando...</div>;
   }
@@ -178,9 +185,6 @@ export default function SchedulePage() {
             {formatDayDate(weekStart, 0)} – {formatDayDate(weekStart, 6)}
           </span>
           <button className={styles.btnSecondary} onClick={nextWeek}>›</button>
-          <Link href={`/${tenant}/student/my-schedule`} className={styles.btnSecondary}>
-            Agenda do Aluno
-          </Link>
           <button className={styles.btnPrimary} onClick={openModal}>+ Nova Sessão</button>
         </div>
       </header>
@@ -213,16 +217,22 @@ export default function SchedulePage() {
                   <div key={dayOffset} className={styles.cell}>
                     {cell.map(s => {
                       const template = tpl(s.templateId);
+                      const count = activeBookingCount(s.id);
+                      const capacity = template?.capacity ?? 0;
+                      const isFull = count >= capacity;
                       return (
                         <Link
                           key={s.id}
                           href={`/${tenant}/admin/sessions/${s.id}`}
-                          className={styles.sessionCard}
+                          className={`${styles.sessionCard}${isFull ? ' ' + styles.sessionCardFull : ''}`}
                         >
-                          <div className={styles.cardTemplate}>{template?.name}</div>
+                          <div className={styles.cardTemplate}>
+                            {template?.name}
+                            {isFull && <span className={styles.lotadoBadge}>Lotado</span>}
+                          </div>
                           <div className={styles.cardCourt}>{court(s.courtId)?.name}</div>
                           <div className={styles.cardBookings}>
-                            {s.bookings}/{template?.capacity ?? 0} vagas · {s.durationMinutes}min
+                            {count}/{capacity} vagas · {s.durationMinutes}min
                           </div>
                         </Link>
                       );
