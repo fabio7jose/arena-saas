@@ -14,7 +14,7 @@ import {
   getBookingsForSession,
   markAttended,
   markNoShow,
-} from '../../../../../lib/schedule';
+} from '../../../../../../lib/schedule';
 
 // ─── Status badge config ──────────────────────────────────────────────────────
 

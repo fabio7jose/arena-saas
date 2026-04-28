@@ -14,7 +14,7 @@ import {
   createSession,
   getSessionsStore,
   getWeekStart,
-} from '../../../../lib/schedule';
+} from '../../../../../lib/schedule';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 

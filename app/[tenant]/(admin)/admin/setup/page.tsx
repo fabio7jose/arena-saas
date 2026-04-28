@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import styles from './styles.module.css';
-import { COURTS, TEMPLATES, getSessionsStore, ServiceType } from '../../../../lib/schedule';
+import { COURTS, TEMPLATES, getSessionsStore, ServiceType } from '../../../../../lib/schedule';
 
 function courtInUse(courtId: string): boolean {
   return getSessionsStore().some(s => s.courtId === courtId);

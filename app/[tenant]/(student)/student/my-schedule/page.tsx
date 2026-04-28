@@ -15,7 +15,7 @@ import {
   MOCK_STUDENT_NAME,
   getSessionsStore,
   cancelBooking,
-} from '../../../../lib/schedule';
+} from '../../../../../lib/schedule';
 
 const DAY_NAMES = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 

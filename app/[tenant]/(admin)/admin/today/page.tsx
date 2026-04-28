@@ -11,7 +11,7 @@ import {
   TEMPLATES,
   getBookingsForSession,
   getSessionsStore,
-} from '../../../../lib/schedule';
+} from '../../../../../lib/schedule';
 
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

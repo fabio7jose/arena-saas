@@ -100,12 +100,12 @@ export const TEMPLATES: Template[] = getTemplatesStore();
 function buildInitialSessions(): Session[] {
   const ws = getWeekStart();
   return [
-    { id: 's1', templateId: 'tpl1', courtId: 'q1', teacherId: 't1', startsAt: makeAt(ws, 0, 8),  durationMinutes: 60, bookings: 5 }, // Mon 08:00 Q1
-    { id: 's2', templateId: 'tpl1', courtId: 'q2', teacherId: 't1', startsAt: makeAt(ws, 0, 9),  durationMinutes: 60, bookings: 3 }, // Mon 09:00 Q2
-    { id: 's3', templateId: 'tpl1', courtId: 'q1', teacherId: 't1', startsAt: makeAt(ws, 2, 10), durationMinutes: 60, bookings: 7 }, // Wed 10:00 Q1
-    { id: 's4', templateId: 'tpl1', courtId: 'q2', teacherId: 't1', startsAt: makeAt(ws, 3, 8),  durationMinutes: 60, bookings: 2 }, // Thu 08:00 Q2
-    { id: 's5', templateId: 'tpl1', courtId: 'q1', teacherId: 't1', startsAt: makeAt(ws, 4, 17), durationMinutes: 60, bookings: 6 }, // Fri 17:00 Q1
-    { id: 's6', templateId: 'tpl1', courtId: 'q1', teacherId: 't1', startsAt: makeAt(ws, 6, 10), durationMinutes: 60, bookings: 0 }, // Sun 10:00 Q1 (S08 test)
+    { id: 's1', templateId: 'tpl1', courtId: 'q1', teacherId: MOCK_TEACHER_ID, startsAt: makeAt(ws, 0, 8),  durationMinutes: 60, bookings: 5 }, // Mon 08:00 Q1
+    { id: 's2', templateId: 'tpl1', courtId: 'q2', teacherId: MOCK_TEACHER_ID, startsAt: makeAt(ws, 0, 9),  durationMinutes: 60, bookings: 3 }, // Mon 09:00 Q2
+    { id: 's3', templateId: 'tpl1', courtId: 'q1', teacherId: MOCK_TEACHER_ID, startsAt: makeAt(ws, 2, 10), durationMinutes: 60, bookings: 7 }, // Wed 10:00 Q1
+    { id: 's4', templateId: 'tpl1', courtId: 'q2', teacherId: MOCK_TEACHER_ID, startsAt: makeAt(ws, 3, 8),  durationMinutes: 60, bookings: 2 }, // Thu 08:00 Q2
+    { id: 's5', templateId: 'tpl1', courtId: 'q1', teacherId: MOCK_TEACHER_ID, startsAt: makeAt(ws, 4, 17), durationMinutes: 60, bookings: 6 }, // Fri 17:00 Q1
+    { id: 's6', templateId: 'tpl1', courtId: 'q1', teacherId: MOCK_TEACHER_ID, startsAt: makeAt(ws, 6, 10), durationMinutes: 60, bookings: 0 }, // Sun 10:00 Q1 (S08 test)
   ];
 }
 
@@ -168,6 +168,9 @@ export function createSession(
 
 export const MOCK_STUDENT_ID   = 'student-demo';
 export const MOCK_STUDENT_NAME = 'Aluno Demo';
+
+export const MOCK_TEACHER_ID   = 't1';
+export const MOCK_TEACHER_NAME = 'Professor João';
 
 // ─── Bookings store ───────────────────────────────────────────────────────────
 // globalThis ensures one array instance across all code-split chunks.

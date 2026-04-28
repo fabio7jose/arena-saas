@@ -15,7 +15,7 @@ import {
   getSessionsStore,
   getWeekStart,
   studentBook,
-} from '../../../../lib/schedule';
+} from '../../../../../lib/schedule';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

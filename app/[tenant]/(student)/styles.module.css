@@ -1,0 +1,63 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  flex-shrink: 0;
+}
+
+.brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f472b6;
+}
+
+.userName {
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.main {
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 4rem;
+}
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: #1e293b;
+  border-top: 1px solid #334155;
+  z-index: 10;
+}
+
+.navLink {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.15s, background 0.15s;
+}
+
+.navLink:hover {
+  color: #f1f5f9;
+  background: #334155;
+}

@@ -11,7 +11,7 @@ import {
   getSessionsStore,
   getBookingsForSession,
   type Session,
-} from '../../../../lib/schedule';
+} from '../../../../../lib/schedule';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
